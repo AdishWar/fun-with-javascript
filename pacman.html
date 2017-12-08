@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Pacman</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/processing.js/1.6.0/processing.min.js"></script>
+		<style>
+			body {
+				font-family: sans-serif;
+				background-color: #315481;
+				background-image: linear-gradient(to bottom, #315481, #918e82 100%);
+				background-attachment: fixed;
+			}
+			
+			input {
+			  box-sizing: border-box;
+			  padding: 10px 0;
+			  background: transparent;
+			  //border: none;
+			  width: 50px;
+			  //padding-right: 80px;
+			  font-size: 1em;
+			}
+		</style>
+    </head>
+	
+    <body>
+		<h1> Pac-Man in JavaScript! </h1>
+		<!-- <input id="size" ></input> -->
+		
+		<!-- <br/><br/>  -->
+        <script type="application/processing">
+			
+			var canvasSize = 500;
+			
+			void setup(){
+				frameRate(60);
+                size(canvasSize, canvasSize);
+				angleMode = "degrees";
+            }
+			
+			//you can alter these 3 variables:
+			var divisions = 15; // 'resolution' of the map. Play around with its values (5 to 30 only)!
+			var probab = [0,0,1]; // more '1's => more wall segments...
+			var boundary = false;  // for boundaries around the map
+			var electroCapacity = 60;   // how many electrocutions can the pacman bear?
+
+			var backgroundColor = color(2, 0, 50);
+			var staticMatrix = [
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 
+						];
+			var electroActive = false;
+			{
+				if(divisions > 30) { 
+					divisions = 30;    //rectifing divisions if set to more than 30 
+				}
+				if(divisions < 5) {
+					divisions = 5;      // rectifing divisions if set to less than 5 
+				}
+			}
+			var oneDivSize = canvasSize/divisions; 
+			var dotSize = oneDivSize/10;
+			var dotsInitial = 0;
+
+			// creating object pacman
+			var pacman = {
+				coordX: (boundary)?(1.5*oneDivSize):(oneDivSize/2),
+				coordY: (boundary)?(1.5*oneDivSize):(oneDivSize/2),
+				size : oneDivSize*2/3,
+				bodyColor: color(77, 255, 0),
+				moveSpeed: oneDivSize/10,
+				//recoilDistance: this.moveSpeed/2,
+				moveDir : 6,
+				mouth: {
+					angle: PI / 6,
+					maxAngle: PI / 4,
+					eatingSpeed: (PI/180)*6,
+					//eatingSweepArea: this.size/4
+				},
+				//eyeSize: this.size/30
+			};
+
+			pacman.recoilDistance = (pacman.moveSpeed)/1;
+			pacman.mouth.eatingSweepArea = pacman.size/4;
+			pacman.eyeSize = pacman.size/30;
+			var electroCount = 0;
+
+			// creating pacman's body
+			void pacmanBody() {
+				fill(255, 255, 0);
+				if(electroActive === true) {
+					fill(0, 251, 255);
+					//playSound(getSound("retro/laser1") );
+					electroActive = false;
+					electroCount++;
+				}
+				
+				fill(225,225,0);
+				arc(pacman.coordX, pacman.coordY, pacman.size, pacman.size, pacman.mouth.angle, (PI*2)-pacman.mouth.angle);
+
+				// eye 
+				stroke(backgroundColor);
+				strokeWeight(3);
+				fill(backgroundColor);
+				if(pacman.moveDir === 4) {
+					ellipse(pacman.coordX, pacman.coordY + (pacman.size/3.5), pacman.eyeSize, pacman.eyeSize);
+				}
+				else {
+					ellipse(pacman.coordX, pacman.coordY - (pacman.size/3.5), pacman.eyeSize, pacman.eyeSize);
+				}
+				noStroke();
+			};
+
+			void blocks(x, y, size) {
+				noStroke();
+				
+				var blockColor = color(255, 0, 0);
+				fill(blockColor);
+				rect(x, y, size, size, 2);
+				
+				stroke(255, 255, 255);
+				strokeWeight(1);
+				
+				rect(x, y, size, size/3, 2);
+				line(x+(size/2), y+size/3, x+(size/2), y+(size*2/3));
+				rect(x, y+(size*2/3), size, size/3, 2);
+				
+				noStroke();
+			};
+
+			// function defining pacman's mouth open/close animation
+			void mouthAnim() {
+				{
+					if(pacman.mouth.angle >= pacman.mouth.maxAngle) {
+						pacman.mouth.eatingSpeed *= -1;
+					}
+					
+					if (pacman.mouth.angle <= (0*PI)) {
+						pacman.mouth.eatingSpeed *= -1;
+					}
+					pacman.mouth.angle += pacman.mouth.eatingSpeed;
+				}
+			};
+
+			// pacman movement controls
+			void keyPressed() {
+				if (keyPressed && keyCode === RIGHT) {
+					pacman.moveDir = 6;
+					
+				} else if (keyPressed && keyCode === LEFT) { 
+					pacman.moveDir = 4;
+					 
+				} else if (keyPressed && keyCode === UP) {
+					pacman.moveDir = 8;
+					 
+				} else if (keyPressed && keyCode === DOWN) {
+					 pacman.moveDir = 2;
+					 
+				}
+			};
+
+			// function defining pacman's rotation
+			void pacmanRotate() {
+				switch(pacman.moveDir) {
+					case 6:
+					   translate(pacman.coordX, pacman.coordY); 
+					   rotate(PI*0);
+					   translate(-pacman.coordX, -pacman.coordY);
+					   break;
+				   case 4:
+					   translate(pacman.coordX, pacman.coordY);
+					   rotate(PI);
+					   translate(-pacman.coordX, -pacman.coordY);
+					   break;
+				   case 2:
+					   translate(pacman.coordX, pacman.coordY);
+					   rotate(PI/2);
+					   translate(-pacman.coordX, -pacman.coordY);
+					   break;
+				   case 8:
+					   translate(pacman.coordX, pacman.coordY);
+					   rotate(3*PI/2);
+					   translate(-pacman.coordX, -pacman.coordY);
+					   break;
+				}
+			};
+
+			// making pacman re-appear on the opposite edge
+			void comeback() {
+				if(pacman.coordX > canvasSize + pacman.size/2) {
+					pacman.coordX = 0 - pacman.size/2;
+				}
+				if(pacman.coordY > canvasSize + pacman.size/2) {
+					pacman.coordY = 0 - pacman.size/2;
+				}
+				if(pacman.coordX < 0 - pacman.size/2) {
+					pacman.coordX = canvasSize + pacman.size/2;
+				}
+				if(pacman.coordY < 0 - pacman.size/2) {
+					pacman.coordY = canvasSize + pacman.size/2;
+				}
+			};
+
+			// creating the map (brown walls)
+			void generateRandomMap() {
+				noStroke();
+				var canvasSize = 400;
+				var matrix = [
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+								[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+							];
+				
+				// loop to fill up the matrix[][] with random 1's and 0's according to probab[]
+				for(var row = 0; row < divisions; row++) {
+					for(var col = 0; col < divisions; col++) {
+						matrix[row][col] = probab[round(random(0, (probab.length-1)))];
+						staticMatrix[row][col] = matrix[row][col];
+						if(staticMatrix[row][col] === 0) {
+							dotsInitial++;
+						}
+					}
+				}
+			};
+
+			// make a copy of the map from above function, and store it in staticMatrix[][]; draws rects
+			void staticDisplayMap() {
+				for(var row = 0; row < divisions; row++) {
+					for(var col = 0; col < divisions; col++) {
+						if( staticMatrix[row][col] !== 1 && 
+							staticMatrix[row][col] !== 2 &&
+							pacman.coordX > (row)*oneDivSize + pacman.mouth.eatingSweepArea && 
+							pacman.coordX < (row+1)*oneDivSize - pacman.mouth.eatingSweepArea && 
+							pacman.coordY > (col)*oneDivSize + pacman.mouth.eatingSweepArea && 
+							pacman.coordY < (col+1)*oneDivSize - pacman.mouth.eatingSweepArea
+						)
+						{
+							staticMatrix[row][col] = 2;
+							electroActive = false;
+							//playSound(getSound("rpg/hit-splat") );
+							
+						}
+						
+						if( staticMatrix[row][col] === 1 && 
+							//electroActive === false &&
+							pacman.coordX > ((row)*oneDivSize)-(pacman.size/2) && 
+							pacman.coordX < ((row+1)*oneDivSize)+(pacman.size/2) && 
+							pacman.coordY > ((col)*oneDivSize)-(pacman.size/2) && 
+							pacman.coordY < ((col+1)*oneDivSize)+(pacman.size/2) 
+						)
+						{
+							switch(pacman.moveDir) {
+								case 2:
+									pacman.coordY -= pacman.recoilDistance;
+									break;
+								case 6:
+									pacman.coordX -= pacman.recoilDistance;
+									break;
+								case 4:
+									pacman.coordX += pacman.recoilDistance;
+									break;
+								case 8:
+									pacman.coordY += pacman.recoilDistance;
+									break;
+							}
+							electroActive = true;
+						}
+						
+						if(staticMatrix[row][col] === 1) {
+							blocks(row*oneDivSize, col*oneDivSize, oneDivSize);
+						}
+						else if(staticMatrix[row][col] === 0) {
+							fill(242, 255, 0);
+							ellipse((row*oneDivSize)+oneDivSize/2, (col*oneDivSize)+oneDivSize/2, dotSize, dotSize); // drawing dots
+
+							
+						}
+						else if(staticMatrix[row][col] === 2) {
+							fill(backgroundColor);
+							rect((row+0.25)*oneDivSize, (col+0.25)*oneDivSize, oneDivSize/2, oneDivSize/2);
+						}
+					}
+				}
+				staticMatrix[0][0] = 2;
+				var col;
+				if(boundary === true) {
+					for(col = 0; col < divisions; col++) {
+						staticMatrix[0][col] = 1;
+						staticMatrix[(divisions-1)][col] = 1;
+					}
+					for(row = 1; row < (divisions-1); row++) {
+						staticMatrix[row][0] = 1;
+						staticMatrix[row][(divisions-1)] = 1;
+					}
+					staticMatrix[1][1] = 2;
+				}
+			};
+
+			void gameOver() {
+				noLoop();
+				background(26, 0, 255);
+				fill(255, 255, 255);
+				textFont('ariel');
+				textSize(43);
+				text('Pacman died!!!', 64, 200);
+				textSize(20);
+				text('too many shocks to bear!', 90, 250);
+			};
+
+			generateRandomMap();
+
+			void draw() {
+				background(backgroundColor);
+				staticDisplayMap();
+				pushMatrix();
+				// calling the pacman's various functions
+					pacmanRotate();
+					pacmanBody();
+					mouthAnim();
+					comeback();
+				popMatrix();
+				
+				if(electroCount >= electroCapacity){
+					gameOver();
+				}
+				
+				if (keyPressed && keyCode === RIGHT) {
+					pacman.moveDir = 6;
+					pacman.coordX += pacman.moveSpeed;
+					
+				} else if (keyPressed && keyCode === LEFT) { 
+					pacman.moveDir = 4;
+					 pacman.coordX -= pacman.moveSpeed;
+					 
+				} else if (keyPressed && keyCode === UP) {
+					pacman.moveDir = 8;
+					 pacman.coordY -= pacman.moveSpeed;
+					 
+				} else if (keyPressed && keyCode === DOWN) {
+					 pacman.moveDir = 2;
+					 pacman.coordY += pacman.moveSpeed;
+					 
+				}
+			}
+			  
+			
+        </script>
+        <canvas></canvas>
+		
+		
+    </body>
+</html>
