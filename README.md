@@ -1,2 +1,3 @@
-# fun-with-javascript
-My Ramblings and Tinkerings in JavaScript...
+# PacMan
+
+This is my first semester college project - recreating the well-known arcade game Pac-Man :)
