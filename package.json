@@ -1,0 +1,23 @@
+{
+  "name": "pacman-in-JS",
+  "version": "1.0.0",
+  "description": "This is my first semester college project - recreating the well-known arcade game Pac-Man :)",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "gh-pages -d src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdishWar/pacman-in-JS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AdishWar/pacman-in-JS/issues"
+  },
+  "homepage": "https://adishwar.github.io/pacman-in-JS/",
+  "dependencies": {
+    "gh-pages": "^2.2.0"
+  }
+}
