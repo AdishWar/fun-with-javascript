@@ -16,7 +16,7 @@
   "bugs": {
     "url": "https://github.com/AdishWar/pacman-in-JS/issues"
   },
-  "homepage": "https://adishwar.github.io/pacman-in-JS/",
+  "homepage": "https://adishwar.github.io/pacman-in-JS",
   "dependencies": {
     "gh-pages": "^2.2.0"
   }
